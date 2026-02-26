@@ -1,5 +1,5 @@
-Componentes Utilizados
+<h2>Componentes Utilizados</h2>
 
-Amazon S3
-Amazon Athena
-AWS Glue Data Catalog
+<li>Amazon S3</li>
+<li>Amazon Athena</li>
+<li>AWS Glue Data Catalog</li>
