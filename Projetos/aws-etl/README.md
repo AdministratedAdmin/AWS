@@ -6,4 +6,5 @@
 <li>Glue Jobs</li>
 <li>Amazon Athena</li>
 
+<h2></h2>
 <p>O intuito de converter os dados de CSV para Parquet é baseado na economia. O CSV pesa mais na leitura pelo Athena devido à estrutura de seus dados.</p>
