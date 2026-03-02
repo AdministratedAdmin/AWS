@@ -1,0 +1,39 @@
+import sys
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from awsglue.dynamicframe import DynamicFrame
+from pyspark.context import SparkContext
+from pyspark.sql.functions import col
+
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+job = Job(glueContext)
+
+datasource0 = glueContext.create_dynamic_frame.from_catalog(
+    database="arqui_lab_db",
+    table_name="brutos"
+)
+
+df = datasource0.toDF()
+
+df = df.withColumn(
+    "Founded_Year",
+    col("Founded_Year").cast("int")
+)
+
+dynamic_frame = DynamicFrame.fromDF(df, glueContext, "dynamic_frame")
+
+glueContext.write_dynamic_frame.from_options(
+    frame=dynamic_frame,
+    connection_type="s3",
+    format="parquet",
+    connection_options={
+        "path": "s3://pedro-data-engineer-proj/processados/",
+        "partitionKeys": ["Founded_Year"]
+    }
+)
+
+job.commit()
