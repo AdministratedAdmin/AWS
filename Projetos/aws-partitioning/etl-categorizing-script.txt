@@ -1,0 +1,58 @@
+import sys
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from pyspark.context import SparkContext
+from pyspark.sql.functions import current_date
+from pyspark.sql.functions import col
+
+args = getResolvedOptions(sys.argv, ['input_file'])
+input_file = args['input_file']
+
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+job = Job(glueContext)
+
+df = spark.read.csv(
+    f"s3://pedro-lab-part-data/bruto/pokemon_erro.csv",
+    header=True,
+    inferSchema=True
+)
+
+df = df.withColumn("ingestion_date", current_date())
+
+total_df = df
+
+valid_df = total_df.filter(
+    col("#").isNotNull() &
+    col("Name").isNotNull() &
+    col("Generation").isNotNull() &
+    (col("HP") >= 0)
+)
+
+invalid_df = total_df.filter(
+    col("#").isNull() |
+    col("Name").isNull() |
+    col("Generation").isNull() |
+    (col("HP") < 0)
+)
+
+valid_df.write \
+    .mode("append") \
+    .partitionBy("ingestion_date") \
+    .parquet("s3://pedro-lab-part-data/processado/")
+
+invalid_df.write \
+    .mode("append") \
+    .parquet("s3://pedro-lab-part-data/rejeitado/")
+    
+total_count = total_df.count()
+valid_count = valid_df.count()
+invalid_count = invalid_df.count()
+
+print(f"Total registros: {total_count}")
+print(f"Registros válidos: {valid_count}")
+print(f"Registros rejeitados: {invalid_count}")
+
+job.commit()
