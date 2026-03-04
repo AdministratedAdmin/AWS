@@ -1,0 +1,29 @@
+import sys
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from pyspark.context import SparkContext
+from pyspark.sql.functions import current_date
+
+args = getResolvedOptions(sys.argv, ['input_file'])
+input_file = args['input_file']
+
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+job = Job(glueContext)
+
+df = spark.read.csv(
+    f"s3://pedro-lab-part-data/{input_file}",
+    header=True,
+    inferSchema=True
+)
+
+df = df.withColumn("ingestion_date", current_date())
+
+df.write \
+  .mode("append") \
+  .partitionBy("ingestion_date") \
+  .parquet("s3://pedro-lab-part-data/processado/")
+
+job.commit()
