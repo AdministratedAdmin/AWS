@@ -18,5 +18,3 @@ WHERE Founded_Year = y;
 
 Você pode buscar diretamente no bucket que corresponde à data ou critério de partição, sendo assim, o Athena não precisa escanear todos os dados para depois retornar os dados filtrados, economizando dinheiro.
 </p>
-
-<p>É possível usar o script de categorização para criar pastas e separar arquivos por data de upload, afim de evitar usar dados antigos. O script de validação serve para "rejeitar" entradas CSV inválidas, retornando métricas través do CloudWatch.</p>
